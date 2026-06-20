@@ -71,10 +71,11 @@ That's the entire engine. Everything else is data and polish.
 
 Aman's original is inline-doc, single-file, k=2. I took it further toward something I'd actually run:
 
-1. **Loaded real docs from disk.** I dropped `.txt` and `.md` files into language folders and loaded them with metadata `{language, source}` instead of pasting strings into the script. Now I add a document by adding a file.
-2. **Added a fourth language.** Threw German policy docs in. The shared-space claim held — no code change, just more files.
-3. **Tuned k from 2 to 3.** With mixed languages, k=2 sometimes returned two near-duplicates of the same doc and starved the model of the actual answer. Bumping to 3 fixed most of it.
-4. **Cited sources in the answer.** I pass `source` and `language` through `format_docs` and ask the model to append where it found the answer. "From it_policy_es.md (Spanish)" beats a confident, unsourced paragraph.
+1. **Source-labelled context.** `format_docs` prepends each retrieved chunk with its `source` (e.g. `[IT_Policy_ES]`), so the context — and any answer grounded in it — carries provenance instead of being an unsourced wall of text.
+2. **Configurable retrieval and models.** The embedding model, the LLM, and the retrieval depth `k` are all environment variables (`EMBED_MODEL`, `OLLAMA_MODEL`, `TOP_K`), so you can tune the pipeline without editing code. With mixed languages, bumping `k` past 2 helps when near-duplicate translations crowd the top results.
+3. **Validated `TOP_K`.** The `k` value is parsed and checked to be a positive integer, so a bad env var fails fast with a clear message instead of a confusing downstream error.
+
+Documents still ship as an inline sample set (English/French/Spanish). Loading from disk and adding more languages are on the roadmap, not in the box yet.
 
 ## Where it breaks
 
@@ -90,7 +91,7 @@ And chunking decides everything. Split a French doc mid-clause and its embedding
 
 Cross-lingual RAG without a translation step isn't a trick — it's just choosing an embedding model that already speaks every language into one geometry. Add a local stack and you get retrieval that's private by default.
 
-*Built on the foundation of Aman Kharwal's walkthrough, ["Build a Multi-Language RAG Pipeline"](https://amanxai.com/2026/04/22/build-a-multi-language-rag-pipeline/) — I adapted the architecture, swapped to file-based loading, and added languages, source citations, and k-tuning of my own.*
+*Built on the foundation of Aman Kharwal's walkthrough, ["Build a Multi-Language RAG Pipeline"](https://amanxai.com/2026/04/22/build-a-multi-language-rag-pipeline/) — I adapted the architecture and added source-labelled context, configurable models/retrieval depth, and `TOP_K` validation.*
 
 ### Sources
 - [Aman Kharwal — Build a Multi-Language RAG Pipeline](https://amanxai.com/2026/04/22/build-a-multi-language-rag-pipeline/)

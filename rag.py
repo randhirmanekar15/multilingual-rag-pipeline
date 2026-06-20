@@ -17,7 +17,19 @@ EMBED_MODEL = os.environ.get(
     "EMBED_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 )
 LLM_MODEL = os.environ.get("OLLAMA_MODEL", "llama3")
-TOP_K = int(os.environ.get("TOP_K", "3"))
+
+
+def _positive_int(value: str, name: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer, got {value!r}") from exc
+    if parsed < 1:
+        raise ValueError(f"{name} must be >= 1, got {parsed}")
+    return parsed
+
+
+TOP_K = _positive_int(os.environ.get("TOP_K", "3"), "TOP_K")
 
 PROMPT_TEMPLATE = """
 You are a helpful assistant.
